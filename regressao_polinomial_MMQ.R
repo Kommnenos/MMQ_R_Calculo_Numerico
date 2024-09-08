@@ -5,6 +5,10 @@
 
 regressao_polinomial_MMQ = function(dados, grau){
   
+  if (nrow(dados) != 2 || is.matrix(dados) == FALSE){
+    return("Erro, certifique-se que seu dataset seja uma matriz 2xN.");
+  }
+  
   num_dados = ncol(dados);
   
   # Matriz de Vandermonde
@@ -22,7 +26,7 @@ regressao_polinomial_MMQ = function(dados, grau){
   matrix_aumentada = cbind(normal_esquerda, normal_direita);
   coeficientes = resolver_gaussiana(matrix_aumentada);
   
-  return(coeficientes);
+  return(list(coeficientes = coeficientes, grau = grau))
   
   
 }

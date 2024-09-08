@@ -4,8 +4,6 @@
 # Saidas
 # A solucao
 
-source("~/Rstuff/MMQ_R_Calculo_Numerico/resolver_gaussiana.R")
-
 regressao_linear_MMQ = function(dados){
   ## verificaçoes de segurança
   if (nrow(dados) != 2 || is.matrix(dados) == FALSE){
