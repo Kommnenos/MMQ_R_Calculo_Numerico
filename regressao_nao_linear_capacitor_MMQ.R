@@ -1,60 +1,61 @@
-#### Regressao Nao Linear - Capacitor###
+#### Regressao Nao Linear - Capacitor ###
 # Aplica uma regressao nao linear baseada na equação da descarga do capacitor
 # Entrada
-# matrix 2xN, com a primeira linha sendo voltagem e a segunda tempo.
+# matrix 2xN, com a primeira linha sendo tempo e a segunda voltagem.
 
-regressao_nao_linear_MMQ = function(dados){
-  tolerancia = 0.0000001
-  iteracoes = 250
-  num_dados = ncols(dados);
+regressao_nao_linear_MMQ = function(dados) {
+  tolerancia = 0.0000001;
+  iteracoes = 250;
+  num_dados = ncol(dados);
   
-  #chutes iniciais
-  voltagem_inicial = 4
-  constante_tempo = 1
+  # Chutes iniciais
+  voltagem_inicial = 4;
+  constante_tempo = 1;
   
-  
-  
-  #calculo residuais
-  for (i in 1:iteracoes){
-    matriz_jacob = matrix(0, num_dados, 2)
-    residuais = numeric(num_dados)
+  for (i in 1:iteracoes) {
+    matriz_jacob = matrix(0, num_dados, 2);
+    residuais = numeric(num_dados);
     
-    #calculo residual e jacobiana
-    for (j in 1:num_dados){
+    # Calculo dos residuais e da matriz jacobiana
+    for (j in 1:num_dados) {
       tempo = dados[1, j];
       voltagem = dados[2, j];
       
-      #predicao voltagem
-      voltagem_predita = voltagem_inicial * exp(-tempo/constante_tempo);
+      # Predição da voltagem
+      voltagem_predita = voltagem_inicial * exp(-tempo / constante_tempo);
       
-      # calculo residuo
+      # Calculo do resíduo
       residuais[j] = voltagem - voltagem_predita;
-    
       
-      #derivadas parciais
-      der_voltagem_inicial = -exp(-tempo / constante_tempo)
+      # Derivadas parciais
+      der_voltagem_inicial = exp(-tempo / constante_tempo);
+      der_constante_tempo = voltagem_inicial * tempo * exp(-tempo / constante_tempo) / (constante_tempo^2);
       
-      der_constante_tempo = voltagem_inicial * tempo * exp(-tempo/constante_tempo) / (constante_tempo^2)
-      
-      #construcao da matriz jacobiana
-      
+      # Construção da matriz jacobiana
       matriz_jacob[j, 1] = der_voltagem_inicial;
       matriz_jacob[j, 2] = der_constante_tempo;
     }
-    # Atualização dos parâmetros
-    Jt_J = t(matriz_jacob) %*% matriz_jacob
-    Jt_r = t(matriz_jacob) %*% residuais
-    delta_p = solve(Jt_J) %*% Jt_r
+    
+    # Construção das matrizes J^T J e J^T r
+    Jt_J = t(matriz_jacob) %*% matriz_jacob;
+    Jt_r = t(matriz_jacob) %*% residuais;
+    
+    # Usar a função de eliminação gaussiana para obter a inversa de J^T J
+    inversa_Jt_J = resolver_gaussiana(cbind(Jt_J, Jt_r));
+    inversa_Jt_J = inversa_Jt_J[, 3];  # A última coluna contém a inversa de J^T J
+    
+    # Calcular delta_p
+    delta_p = inversa_Jt_J %*% Jt_r;
     
     # Atualizar parâmetros
-    voltagem_inicial = voltagem_inicial + delta_p[1]
-    constante_tempo = constante_tempo + delta_p[2]
+    voltagem_inicial = voltagem_inicial + delta_p[1];
+    constante_tempo = constante_tempo + delta_p[2];
     
     # Verificação de convergência
     if (sqrt(sum(delta_p^2)) < tolerancia) {
-      break
+      break;
     }
   }
   
-  return(c(voltagem_inicial, constante_tempo))
+  return(c(voltagem_inicial, constante_tempo));
 }
